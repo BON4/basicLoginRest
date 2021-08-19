@@ -166,23 +166,45 @@ func (p *postgresRepository) Find(ctx context.Context, cond models.FindUserReque
 	return i, nil
 }
 
-func (p *postgresRepository) GetByUsername(ctx context.Context, username string) (*models.User, error) {
+func (p *postgresRepository) GetByUsername(ctx context.Context, username string, password []byte) (*models.User, error) {
 	var err error
 	defer func() {
 		if err != nil {
-			err = errors.Wrap(err, "pgRepository.GetByUsername")
+			err = errors.Wrap(err, "pgRepository.GetByCredentials")
 		}
 	}()
 
 	var pUsr models.User
 
-	q := pgGetUserByUsernameSqlx(p.tableName)
-	err = p.conn.GetContext(ctx, &pUsr, q, username)
+	q := pgGetByUsernameSqlx(p.tableName)
+	err = p.conn.GetContext(ctx, &pUsr, q, username, password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.Wrap(err, "pgRepository.GetByID.NotFound")
+			return nil, errors.Wrap(err, "pgRepository.GetByCredentials.NotFound")
 		}
-		return nil, errors.Wrap(err, "pgRepository.GetByID")
+		return nil, errors.Wrap(err, "pgRepository.GetByCredentials")
+	}
+
+	return &pUsr, nil
+}
+
+func (p *postgresRepository) GetByEmail(ctx context.Context, email string, password []byte) (*models.User, error) {
+	var err error
+	defer func() {
+		if err != nil {
+			err = errors.Wrap(err, "pgRepository.GetByCredentials")
+		}
+	}()
+
+	var pUsr models.User
+
+	q := pgGetByEmailSqlx(p.tableName)
+	err = p.conn.GetContext(ctx, &pUsr, q, email, password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrap(err, "pgRepository.GetByCredentials.NotFound")
+		}
+		return nil, errors.Wrap(err, "pgRepository.GetByCredentials")
 	}
 
 	return &pUsr, nil

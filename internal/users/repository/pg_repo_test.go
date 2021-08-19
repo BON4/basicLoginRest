@@ -5,6 +5,7 @@ import (
 	"basicLoginRest/pkg/db/postgres"
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
@@ -47,6 +48,77 @@ func TestMain(m *testing.M) {
 		skipDatabaseTest = true
 	}
 	m.Run()
+}
+
+func TestMockGetByCredentials(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	defer sqlxDB.Close()
+
+	repo := NewPostgresRepository(sqlxDB, tableName)
+
+	t.Run("GetByUsername", func(t *testing.T) {
+		u, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
+
+		rows := sqlmock.NewRows([]string{"id", "username", "email", "role", "password"}).AddRow(u.ID, u.Username, u.Email, u.Role, u.Password)
+
+		q := pgGetByUsernameSqlx(tableName)
+		//q, args := createUserJet(&u)
+		mock.ExpectQuery(q).WithArgs(u.Username, u.Password).WillReturnRows(rows)
+
+		createdUser, err := repo.GetByUsername(context.Background(), u.Username, u.Password)
+
+		require.NoError(t, err)
+		require.NotNil(t, createdUser)
+		require.Equal(t, createdUser, &u)
+	})
+
+	t.Run("GetByUsername Error", func(t *testing.T) {
+		u, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
+
+		q := pgGetByUsernameSqlx(tableName)
+		//q, args := createUserJet(&u)
+		mock.ExpectQuery(q).WithArgs(u.Username, u.Password).WillReturnError(sql.ErrNoRows)
+
+		createdUser, err := repo.GetByUsername(context.Background(), u.Username, u.Password)
+
+		require.Error(t, err)
+		require.Nil(t, createdUser)
+	})
+
+	t.Run("GetByEmail", func(t *testing.T) {
+		u, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
+
+		rows := sqlmock.NewRows([]string{"id", "username", "email", "role", "password"}).AddRow(u.ID, u.Username, u.Email, u.Role, u.Password)
+
+		q := pgGetByEmailSqlx(tableName)
+		//q, args := createUserJet(&u)
+		mock.ExpectQuery(q).WithArgs(u.Email, u.Password).WillReturnRows(rows)
+
+		createdUser, err := repo.GetByEmail(context.Background(), u.Email, u.Password)
+
+		require.NoError(t, err)
+		require.NotNil(t, createdUser)
+		require.Equal(t, createdUser, &u)
+	})
+
+	t.Run("GetByEmail Error", func(t *testing.T) {
+		u, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
+
+		q := pgGetByEmailSqlx(tableName)
+		//q, args := createUserJet(&u)
+		mock.ExpectQuery(q).WithArgs(u.Email, u.Password).WillReturnError(sql.ErrNoRows)
+
+		createdUser, err := repo.GetByUsername(context.Background(), u.Email, u.Password)
+
+		require.Error(t, err)
+		require.Nil(t, createdUser)
+	})
 }
 
 func TestMockUpdate(t *testing.T) {
@@ -243,6 +315,46 @@ func TestPostgresRepository_Delete(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = userrepo.GetByID(context.Background(), newUser.ID)
+		require.Error(t, err)
+	})
+}
+
+func TestPostgresRepository_GetByCredentials(t *testing.T) {
+	if skipDatabaseTest {
+		t.Skip("No connection to database")
+		return
+	}
+
+	defer func() {
+		_, err := DB.ExecContext(context.Background(), "DELETE FROM " + tableName)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	userrepo := NewPostgresRepository(DB, tableName)
+
+	usr, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
+	newUser, err := userrepo.Create(context.Background(), &usr)
+	require.NoError(t, err)
+
+	t.Run("GetByUsername", func(t *testing.T) {
+		_, err = userrepo.GetByUsername(context.Background(), newUser.Username, newUser.Password)
+		require.NoError(t, err)
+	})
+
+	t.Run("GetByUsername Error", func(t *testing.T) {
+		_, err = userrepo.GetByUsername(context.Background(), newUser.Username + "offset", newUser.Password)
+		require.Error(t, err)
+	})
+
+	t.Run("GetByEmail", func(t *testing.T) {
+		_, err = userrepo.GetByEmail(context.Background(), newUser.Email, newUser.Password)
+		require.NoError(t, err)
+	})
+
+	t.Run("GetByEmail Error", func(t *testing.T) {
+		_, err = userrepo.GetByEmail(context.Background(), newUser.Email + "offset", newUser.Password)
 		require.Error(t, err)
 	})
 }

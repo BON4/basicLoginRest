@@ -15,5 +15,8 @@ type Repository interface {
 	Find(ctx context.Context, cond models.FindUserRequest, dest []models.User) (int, error)
 
 	GetByID(ctx context.Context, userID int) (*models.User, error)
-	GetByUsername(ctx context.Context, username string) (*models.User, error)
+
+	GetByUsername(ctx context.Context, username string, password []byte) (*models.User, error)
+
+	GetByEmail(ctx context.Context, username string, password []byte) (*models.User, error)
 }

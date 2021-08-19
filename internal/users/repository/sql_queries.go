@@ -10,8 +10,12 @@ var (
 		return `SELECT * FROM ` + tableName + ` where id = $1 LIMIT 1`
 	}
 
-	pgGetUserByUsernameSqlx = func(tableName string) string {
-		return `SELECT * FROM ` + tableName + ` where username = $1 LIMIT 1`
+	pgGetByUsernameSqlx = func(tableName string) string {
+		return `SELECT * FROM ` + tableName + ` where username = $1 and password = $2 LIMIT 1`
+	}
+
+	pgGetByEmailSqlx = func(tableName string) string {
+		return `SELECT * FROM ` + tableName + ` where email = $1 and password = $2 LIMIT 1`
 	}
 
 	pgCreateUserSqlx = func(tableName string) string {
