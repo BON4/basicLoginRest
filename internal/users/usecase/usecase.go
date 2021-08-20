@@ -4,6 +4,7 @@ import (
 	"basicLoginRest/internal/models"
 	"basicLoginRest/internal/users"
 	"basicLoginRest/pkg/logger"
+	"basicLoginRest/pkg/utils"
 	"context"
 	"github.com/pkg/errors"
 )
@@ -32,6 +33,10 @@ func (u *usersUC) Create(ctx context.Context, user *models.User) (*models.User, 
 func (u *usersUC) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	_, err := u.usersRepo.GetByID(ctx, user.ID)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := utils.ValidatePermission(ctx, models.UPDATE); err != nil {
 		return nil, err
 	}
 

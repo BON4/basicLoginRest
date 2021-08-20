@@ -6,17 +6,6 @@ import (
 	"go.uber.org/multierr"
 )
 
-const (
-	ADMIN = "admin"
-	USER = "user"
-	VIEWER = "viewer"
-)
-var roles = map[string]string{
-	ADMIN: ADMIN,
-	USER: USER,
-	VIEWER: VIEWER,
-}
-
 type User struct {
 	ID int `json:"id" db:"id"`
 	Username string `json:"username" db:"username"`
@@ -125,7 +114,7 @@ func (p UsernameTooShortError) Error() string {
 }
 
 type RoleDoesNotExistError struct {
-	ListOfRoles map[string]string
+	ListOfRoles []Role
 	ProvidedRole string
 }
 
@@ -177,10 +166,11 @@ func (ufc UserFactory) NewUser(username, email, role, password string) (User, er
 		}
 	}
 
-	if _, ok := roles[role]; !ok {
+
+	if _, ok := CheckPermission(role); !ok {
 		return User{},RoleDoesNotExistError{
 			ProvidedRole: role,
-			ListOfRoles: roles,
+			ListOfRoles: GetRolesList(),
 		}
 	}
 
