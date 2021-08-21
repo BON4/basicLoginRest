@@ -5,6 +5,8 @@ import (
 	"context"
 )
 
+// TODO create list method with query to specify pagesize and page number
+// Add the same functionality to Find
 type Repository interface {
 	Create(ctx context.Context, u *models.User) (*models.User, error)
 	Delete(ctx context.Context, userID int) error

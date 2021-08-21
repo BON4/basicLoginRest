@@ -15,6 +15,10 @@ type usersUC struct {
 }
 
 func (u *usersUC) Find(ctx context.Context, cond models.FindUserRequest, dest []models.User) (int, error) {
+	if err := utils.ValidatePermission(ctx, models.VIEW); err != nil {
+		return 0, err
+	}
+
 	if cond.Username == nil && cond.ID == nil && cond.Email == nil {
 		return 0, errors.Wrap(errors.New("condition is empty"), "usersUC.Find.EmptyCond")
 	}
@@ -27,16 +31,20 @@ func (u *usersUC) Find(ctx context.Context, cond models.FindUserRequest, dest []
 }
 
 func (u *usersUC) Create(ctx context.Context, user *models.User) (*models.User, error) {
+	if err := utils.ValidatePermission(ctx, models.CREATE); err != nil {
+		return nil, err
+	}
+
 	return u.usersRepo.Create(ctx, user)
 }
 
 func (u *usersUC) Update(ctx context.Context, user *models.User) (*models.User, error) {
-	_, err := u.usersRepo.GetByID(ctx, user.ID)
-	if err != nil {
+	if err := utils.ValidatePermission(ctx, models.UPDATE); err != nil {
 		return nil, err
 	}
 
-	if err := utils.ValidatePermission(ctx, models.UPDATE); err != nil {
+	_, err := u.usersRepo.GetByID(ctx, user.ID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -44,6 +52,10 @@ func (u *usersUC) Update(ctx context.Context, user *models.User) (*models.User, 
 }
 
 func (u *usersUC) Delete(ctx context.Context, userID int) error {
+	if err := utils.ValidatePermission(ctx, models.DELETE); err != nil {
+		return err
+	}
+
 	_, err := u.usersRepo.GetByID(ctx, userID)
 	if err != nil {
 		return err
@@ -53,10 +65,14 @@ func (u *usersUC) Delete(ctx context.Context, userID int) error {
 }
 
 func (u *usersUC) GetByID(ctx context.Context, userID int) (*models.User, error) {
+	if err := utils.ValidatePermission(ctx, models.VIEW); err != nil {
+		return nil, err
+	}
+
 	return u.usersRepo.GetByID(ctx, userID)
 }
 
-func NewUserUsecase(repo users.Repository, log logger.Logger) users.UseCase {
+func NewUserUseCase(repo users.Repository, log logger.Logger) users.UseCase {
 	return &usersUC{
 		usersRepo: repo,
 		logger:    log,

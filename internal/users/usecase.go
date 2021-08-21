@@ -5,6 +5,8 @@ import (
 	"context"
 )
 
+// TODO create list method with query to specify pagesize and page number
+// Add the same functionality to Find
 type UseCase interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
 	Update(ctx context.Context, user *models.User) (*models.User, error)
