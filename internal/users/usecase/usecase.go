@@ -19,9 +19,13 @@ func (u *usersUC) Find(ctx context.Context, cond models.FindUserRequest, dest []
 		return 0, err
 	}
 
-	if cond.Username == nil && cond.ID == nil && cond.Email == nil {
-		return 0, errors.Wrap(errors.New("condition is empty"), "usersUC.Find.EmptyCond")
+	if cond.PageSettings == nil {
+		return 0, errors.Wrap(errors.New("page_settings condition is empty"), "usersUC.Find.EmptyCond")
 	}
+	//TODO could user send the empty request? It will be just select * from table;
+	//if cond.Username == nil && cond.ID == nil && cond.Email == nil {
+	//	return 0, errors.Wrap(errors.New("condition is empty"), "usersUC.Find.EmptyCond")
+	//}
 
 	if len(dest) == 0 {
 		return 0, nil

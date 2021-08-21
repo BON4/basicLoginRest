@@ -232,6 +232,10 @@ func TestMockFind(t *testing.T) {
 			},
 			"email": {
 				"LIKE": "%gmail"
+			},
+			"page_settings": {
+				"page_size": 10,
+				"page_number": 1
 			}
 		}
 		`

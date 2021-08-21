@@ -58,6 +58,11 @@ var (
 			t = t.Where(sqlr.Eq{"role": cond.Role.Eq})
 		}
 
+		if cond.PageSettings != nil {
+			t = t.Offset(uint64(cond.PageSettings.PageNumber))
+			t = t.Limit(uint64(cond.PageSettings.PageSize))
+		}
+
 		return t.PlaceholderFormat(sqlr.Dollar).ToSql()
 	}
 )
