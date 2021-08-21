@@ -2,6 +2,10 @@ package models
 
 type Role string
 
+func (r Role) String() string {
+	return string(r)
+}
+
 const (
 	ADMIN = Role("admin")
 	USER = Role("user")
@@ -9,6 +13,10 @@ const (
 )
 
 type Permission string
+
+func (p Permission) String() string {
+	return string(p)
+}
 
 const (
 	CREATE = Permission("create")

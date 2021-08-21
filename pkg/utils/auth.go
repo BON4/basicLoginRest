@@ -23,6 +23,7 @@ func ValidatePermission(ctx context.Context, perm models.Permission) error {
 
 	if allowedPrm, ok := models.CheckPermission(u.Role); ok {
 		if !stringInSlice(perm,allowedPrm) {
+			//TOLOG
 			return errors.New("Method not allowed for this role")
 		}
 	} else {

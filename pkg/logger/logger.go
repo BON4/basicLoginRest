@@ -1,18 +1,38 @@
 package logger
 
+import (
+	"log"
+	"os"
+)
+
 // Logger methods interface
 type Logger interface {
-	InitLogger()
-	Debug(args ...interface{})
-	Debugf(template string, args ...interface{})
-	Info(args ...interface{})
-	Infof(template string, args ...interface{})
-	Warn(args ...interface{})
-	Warnf(template string, args ...interface{})
-	Error(args ...interface{})
-	Errorf(template string, args ...interface{})
-	DPanic(args ...interface{})
-	DPanicf(template string, args ...interface{})
-	Fatal(args ...interface{})
-	Fatalf(template string, args ...interface{})
+	Println(v ...interface{})
+	Printf(format string, v ...interface{})
+	Fatalf(format string, v ...interface{})
+	Fatal(v ...interface{})
+}
+
+type apiLogger struct {
+	logger *log.Logger
+}
+
+func (a *apiLogger) Println(v ...interface{}) {
+	a.logger.Println(v...)
+}
+
+func (a *apiLogger) Printf(format string, v ...interface{}) {
+	a.logger.Printf(format, v...)
+}
+
+func (a *apiLogger) Fatalf(format string, v ...interface{}) {
+	a.logger.Fatalf(format, v...)
+}
+
+func (a *apiLogger) Fatal(v ...interface{}) {
+	a.logger.Fatal(v...)
+}
+
+func NewApiLogger() Logger {
+	return &apiLogger{logger: log.New(os.Stdout, "TODOLOG", log.Llongfile)}
 }

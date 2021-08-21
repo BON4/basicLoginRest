@@ -147,7 +147,7 @@ func (p RoleDoesNotExistError) Error() string {
 //	}, nil
 //}
 
-func (ufc UserFactory) NewUser(username, email, role, password string) (User, error) {
+func (ufc UserFactory) NewUser(username string, email string, role Role ,password string) (User, error) {
 	if err := ufc.validateEmail(email); err != nil {
 		return User{}, err
 	}
@@ -167,9 +167,9 @@ func (ufc UserFactory) NewUser(username, email, role, password string) (User, er
 	}
 
 
-	if _, ok := CheckPermission(role); !ok {
+	if _, ok := CheckPermission(role.String()); !ok {
 		return User{},RoleDoesNotExistError{
-			ProvidedRole: role,
+			ProvidedRole: role.String(),
 			ListOfRoles: GetRolesList(),
 		}
 	}
@@ -177,7 +177,7 @@ func (ufc UserFactory) NewUser(username, email, role, password string) (User, er
 	return User{
 		Username: username,
 		Email:    email,
-		Role: 	  role,
+		Role: 	  role.String(),
 		Password: ufc.parsePassword(password),
 	}, nil
 }
@@ -197,4 +197,8 @@ type FindUserRequest struct {
 	ID *struct {
 		Eq int `json:"EQ"`
 	} `json:"id"`
+	PageSettings *struct{
+		PageSize uint `json:"page_size"`
+		PageNumber uint `json:"page_number"`
+	} `json:"page_settings"`
 }
