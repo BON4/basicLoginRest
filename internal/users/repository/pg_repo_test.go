@@ -423,6 +423,10 @@ func TestPostgresRepository_Find(t *testing.T) {
 			},
 			"email": {
 				"LIKE": "%gmail.com"
+			},
+			"page_settings": {
+				"page_size": 10,
+				"page_number": 0
 			}
 		}
 		`

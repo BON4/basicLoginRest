@@ -2,7 +2,7 @@ CREATE TYPE role as enum ('admin', 'user', 'viewer');
 
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (id SERIAL, username varchar NOT NULL UNIQUE, email varchar NOT NULL UNIQUE, role role not null, password bytea);
-SELECT * FROM users;
+SELECT * FROM users offset 1 limit 10;
 UPDATE users set username = 'glad' where id = 2 returning *;
 
 SELECT * FROM users WHERE username LIKE 'v%' AND email LIKE '%gmail.com';

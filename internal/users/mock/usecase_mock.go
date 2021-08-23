@@ -94,6 +94,36 @@ func (mr *MockUseCaseMockRecorder) GetByID(ctx, userID interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUseCase)(nil).GetByID), ctx, userID)
 }
 
+// LoginWithEmail mocks base method.
+func (m *MockUseCase) LoginWithEmail(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoginWithEmail", ctx, user)
+	ret0, _ := ret[0].(*models.UserWithToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoginWithEmail indicates an expected call of LoginWithEmail.
+func (mr *MockUseCaseMockRecorder) LoginWithEmail(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginWithEmail", reflect.TypeOf((*MockUseCase)(nil).LoginWithEmail), ctx, user)
+}
+
+// LoginWithUsername mocks base method.
+func (m *MockUseCase) LoginWithUsername(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoginWithUsername", ctx, user)
+	ret0, _ := ret[0].(*models.UserWithToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoginWithUsername indicates an expected call of LoginWithUsername.
+func (mr *MockUseCaseMockRecorder) LoginWithUsername(ctx, user interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginWithUsername", reflect.TypeOf((*MockUseCase)(nil).LoginWithUsername), ctx, user)
+}
+
 // Update mocks base method.
 func (m *MockUseCase) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()

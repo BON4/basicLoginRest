@@ -32,3 +32,7 @@ func ValidatePermission(ctx context.Context, perm models.Permission) error {
 
 	return nil
 }
+
+func GenerateToken(user *models.User) (string, error) {
+	return "not implemented token", nil
+}

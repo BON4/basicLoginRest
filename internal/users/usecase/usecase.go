@@ -3,6 +3,7 @@ package usecase
 import (
 	"basicLoginRest/internal/models"
 	"basicLoginRest/internal/users"
+	"basicLoginRest/pkg/httpErrors"
 	"basicLoginRest/pkg/logger"
 	"basicLoginRest/pkg/utils"
 	"context"
@@ -12,6 +13,40 @@ import (
 type usersUC struct {
 	usersRepo users.Repository
 	logger logger.Logger
+}
+
+func (u *usersUC) LoginWithUsername(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
+	foundUser, err := u.usersRepo.GetByUsername(ctx, user.Username, user.Password)
+	if err != nil {
+		return nil, httpErrors.NewUnauthorizedError(errors.Wrap(err, "usersUC.LoginWithUsername.GetByUsername"))
+	}
+
+	token, err := utils.GenerateToken(foundUser)
+	if err != nil {
+		return nil, httpErrors.NewInternalServerError(errors.Wrap(err, "usersUC.LoginWithUsername.GenerateToken"))
+	}
+
+	return &models.UserWithToken{
+		User:  foundUser,
+		Token: token,
+	}, nil
+}
+
+func (u *usersUC) LoginWithEmail(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
+	foundUser, err := u.usersRepo.GetByEmail(ctx, user.Email, user.Password)
+	if err != nil {
+		return nil, httpErrors.NewUnauthorizedError(errors.Wrap(err, "usersUC.LoginWithEmail.GetByEmail"))
+	}
+
+	token, err := utils.GenerateToken(foundUser)
+	if err != nil {
+		return nil, httpErrors.NewInternalServerError(errors.Wrap(err, "usersUC.LoginWithEmail.GenerateToken"))
+	}
+
+	return &models.UserWithToken{
+		User:  foundUser,
+		Token: token,
+	}, nil
 }
 
 func (u *usersUC) Find(ctx context.Context, cond models.FindUserRequest, dest []models.User) (int, error) {

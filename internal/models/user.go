@@ -182,6 +182,11 @@ func (ufc UserFactory) NewUser(username string, email string, role Role ,passwor
 	}, nil
 }
 
+type UserWithToken struct {
+	User *User `json:"user"`
+	Token string `json:"token"`
+}
+
 type FindUserRequest struct {
 	Username *struct {
 		Like string `json:"LIKE"`
