@@ -8,22 +8,42 @@ import (
 	"reflect"
 )
 
-func ParsePostgres(f string) (*DatabaseConfig, error) {
+func ParseConfig(f string) (Config, error) {
 	file, err := os.Open(f)
 	if err != nil {
 
-		return nil, err
+		return Config{}, err
 	}
 	defer file.Close()
 
-	opts := &DatabaseConfig{}
+	opts := Config{}
 	yd := yaml.NewDecoder(file)
-	err = yd.Decode(opts)
+	err = yd.Decode(&opts)
 
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 	return opts, nil
+}
+
+func ParsePostgres(f string) (PostgresConfig, error) {
+	file, err := os.Open(f)
+	if err != nil {
+
+		return PostgresConfig{}, err
+	}
+	defer file.Close()
+
+	opts := struct {
+		Postgres PostgresConfig `yaml:"postgres"`
+	}{}
+	yd := yaml.NewDecoder(file)
+	err = yd.Decode(&opts)
+
+	if err != nil {
+		return PostgresConfig{}, err
+	}
+	return opts.Postgres, nil
 }
 
 // TODO maby create a separate config for poool
@@ -48,8 +68,8 @@ func ParsePostgresConnFromConfig(conf string) *pgx.ConnConfig {
 		panic(err)
 	}
 
-	values := reflect.ValueOf(*postConf.PgConfig)
-	names := reflect.Indirect(reflect.ValueOf(*postConf.PgConfig)).Type()
+	values := reflect.ValueOf(postConf)
+	names := reflect.Indirect(reflect.ValueOf(postConf)).Type()
 
 	s := reflect.ValueOf(pgconf).Elem()
 	for i := 0; i < values.NumField(); i++ {

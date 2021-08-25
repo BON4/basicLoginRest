@@ -6,6 +6,35 @@ import (
 )
 
 var (
+	pgIsUsersExists = func(tableName string) string {
+		return `select EXISTS(SELECT id FROM ` + tableName + ` where username = $1 or email = $2)`
+	}
+
+
+	pgGetUserByIDSqlx = func(tableName string) string {
+		return `SELECT * FROM ` + tableName + ` where id = $1 LIMIT 1`
+	}
+
+	pgGetByUsernameSqlx = func(tableName string) string {
+		return `SELECT * FROM ` + tableName + ` where username = $1 and password = $2 LIMIT 1`
+	}
+
+	pgGetByEmailSqlx = func(tableName string) string {
+		return `SELECT * FROM ` + tableName + ` where email = $1 and password = $2 LIMIT 1`
+	}
+
+	pgCreateUserSqlx = func(tableName string) string {
+		return `INSERT INTO ` + tableName + ` (username, email, role,password) values ($1, $2, $3, $4) returning *`
+	}
+
+	pgDeleteUserSqlx = func(tableName string) string {
+		return `DELETE FROM ` + tableName + ` where id = $1`
+	}
+
+	pgUpdateUserSqlx = func(tableName string) string {
+		return `UPDATE ` + tableName + ` set username = $1, email = $2, role = $3, password = $4 where id = $5 returning *`
+	}
+
 	pgFindUserSquirrel = func(tableName string, cond models.FindUserRequest) (string, []interface{}, error) {
 		t := sqlr.Select("*").From(tableName)
 

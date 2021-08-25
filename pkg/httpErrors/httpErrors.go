@@ -12,7 +12,7 @@ import (
 
 const (
 	ErrBadRequest         = "Bad request"
-	ErrEmailAlreadyExists = "User with given email already exists"
+	ErrUserAlreadyExists  = "User with given credentials already exists"
 	ErrNoSuchUser         = "User not found"
 	ErrWrongCredentials   = "Wrong Credentials"
 	ErrNotFound           = "Not Found"

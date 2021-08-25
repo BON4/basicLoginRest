@@ -6,8 +6,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
-	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -211,61 +209,6 @@ func TestMockCreate(t *testing.T) {
 	})
 }
 
-func TestMockFind(t *testing.T) {
-	t.Parallel()
-
-	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-	require.NoError(t, err)
-	defer db.Close()
-
-	sqlxDB := sqlx.NewDb(db, "sqlmock")
-	defer sqlxDB.Close()
-
-	repo := NewPostgresRepository(sqlxDB, tableName)
-
-	t.Run("Find One", func(t *testing.T) {
-		var jsonStr = `
-		{
-			"username": {
-				"LIKE":"%ad",
-				"EQ":""
-			},
-			"email": {
-				"LIKE": "%gmail"
-			},
-			"page_settings": {
-				"page_size": 10,
-				"page_number": 1
-			}
-		}
-		`
-		var findReq models.FindUserRequest
-		err := json.Unmarshal([]byte(jsonStr), &findReq)
-		require.Nil(t, err)
-
-		u, _ := userFactory.NewUser("vlad", "vlad@gmail.com", models.USER,"1324")
-
-		//repo.Create(context.Background(), &u)
-
-		rows := sqlmock.NewRows([]string{"id", "username", "email", "role", "password"}).AddRow(0, u.Username, u.Email, u.Role, u.Password)
-
-		q, args, err := pgFindUserSquirrel(tableName ,findReq)
-		require.NoError(t, err)
-
-		vArgs := make([]driver.Value, len(args))
-		for i := 0; i < len(vArgs); i++ {
-			vArgs[i] = driver.Value(args[i])
-		}
-
-		mock.ExpectQuery(q).WithArgs(vArgs...).WillReturnRows(rows)
-		us := make([]models.User, 1)
-		n, err := repo.Find(context.Background(), findReq, us)
-		require.NoError(t, err)
-		require.Equal(t, 1, n)
-		require.Equal(t, us[0], u)
-	})
-}
-
 func TestPostgresRepository_Create(t *testing.T) {
 	if skipDatabaseTest {
 		t.Skip("No connection to database")
@@ -363,6 +306,44 @@ func TestPostgresRepository_GetByCredentials(t *testing.T) {
 	})
 }
 
+func TestPostgresRepository_IsExists(t *testing.T) {
+	if skipDatabaseTest {
+		t.Skip("No connection to database")
+		return
+	}
+
+	defer func() {
+		_, err := DB.ExecContext(context.Background(), "DELETE FROM " + tableName)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	userrepo := NewPostgresRepository(DB, tableName)
+
+	usr, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
+	newUser, err := userrepo.Create(context.Background(), &usr)
+	require.NoError(t, err)
+
+	t.Run("IsExists", func(t *testing.T) {
+		ok, err := userrepo.IsExists(context.Background(), newUser.Username, newUser.Email)
+		require.NoError(t, err)
+		require.True(t, ok)
+
+		ok, err = userrepo.IsExists(context.Background(), newUser.Username + "offset", newUser.Email)
+		require.NoError(t, err)
+		require.True(t, ok)
+
+		ok, err = userrepo.IsExists(context.Background(), newUser.Username, newUser.Email + "offset")
+		require.NoError(t, err)
+		require.True(t, ok)
+
+		ok, err = userrepo.IsExists(context.Background(), newUser.Username + "offset", newUser.Email + "offset")
+		require.NoError(t, err)
+		require.False(t, ok)
+	})
+}
+
 func TestPostgresRepository_Update(t *testing.T) {
 	if skipDatabaseTest {
 		t.Skip("No connection to database")
@@ -393,93 +374,5 @@ func TestPostgresRepository_Update(t *testing.T) {
 		require.Equal(t, updatedUser.Username, preparedUser.Username)
 		require.Equal(t, updatedUser.Email, preparedUser.Email)
 		require.Equal(t, updatedUser.Password, preparedUser.Password)
-	})
-}
-
-func TestPostgresRepository_Find(t *testing.T) {
-	if skipDatabaseTest {
-		t.Skip("No connection to database")
-		return
-	}
-
-	userrepo := NewPostgresRepository(DB, tableName)
-	t.Run("Find", func(t *testing.T) {
-		defer func() {
-			_, err := DB.ExecContext(context.Background(), "DELETE FROM " + tableName)
-			if err != nil {
-				panic(err)
-			}
-		}()
-
-		usr, _ := userFactory.NewUser("abcd", "abcd@gmail.com", models.USER,"1324")
-		newUser, err := userrepo.Create(context.Background(), &usr)
-		require.NoError(t, err)
-
-		var jsonStr = `
-		{
-			"username": {
-				"LIKE":"%cd",
-				"EQ":""
-			},
-			"email": {
-				"LIKE": "%gmail.com"
-			},
-			"page_settings": {
-				"page_size": 10,
-				"page_number": 0
-			}
-		}
-		`
-		var findReq models.FindUserRequest
-		err = json.Unmarshal([]byte(jsonStr), &findReq)
-		require.Nil(t, err)
-
-
-		findUsers := make([]models.User, 10)
-		n, err := userrepo.Find(context.Background(), findReq, findUsers)
-		require.NoError(t, err)
-		require.Equal(t, 1, n)
-		require.Equal(t, newUser.Username, findUsers[0].Username)
-		require.Equal(t, newUser.Email, findUsers[0].Email)
-		require.Equal(t, newUser.Password, findUsers[0].Password)
-	})
-}
-
-func BenchmarkPostgresRepository_Find(b *testing.B) {
-	if skipDatabaseTest {
-		b.Skip("No connection to database")
-		return
-	}
-
-	conn := postgres.OpenSqlxViaPgx(context.Background(), "C:\\Users\\home\\go\\src\\basicLoginRest\\config\\config.yaml", nil)
-	defer conn.Close()
-
-	userrepo := NewPostgresRepository(conn, tableName)
-
-	var jsonStr = `
-		{
-			"username": {
-				"LIKE":"%",
-				"EQ":""
-			},
-			"email": {
-				"LIKE": "%email.com"
-			}
-		}
-		`
-
-	b.Run("Find", func(b *testing.B) {
-		var findReq models.FindUserRequest
-		err := json.Unmarshal([]byte(jsonStr), &findReq)
-		if err != nil {
-			b.Error(err)
-		}
-
-
-		findUsers := make([]models.User, 301)
-		_, err = userrepo.Find(context.Background(), findReq, findUsers)
-		if err != nil {
-			b.Error(err)
-		}
 	})
 }

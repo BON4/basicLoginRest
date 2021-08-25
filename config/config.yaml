@@ -1,7 +1,22 @@
 postgres:
-  host: "localhost"
+  host: localhost
   port: 5432
-  database: "admin"
-  user: "admin"
-  password: "1234"
+  database: admin
+  user: admin
+  password: 1234
   connect-timeout: 5s
+
+server:
+  host: localhost
+  port: 8080
+  app_version: 1.0.0
+  mode: Development
+  cookie_name: go_cookie
+  jwt_secret_key: secret
+
+logger:
+  development: true
+  disable_caller: false
+  disable_stacktrace: false
+  encoding: json
+  level: info

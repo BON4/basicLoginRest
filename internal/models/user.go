@@ -7,14 +7,14 @@ import (
 )
 
 type User struct {
-	ID int `json:"id" db:"id"`
+	ID uint `json:"id" db:"id"`
 	Username string `json:"username" db:"username"`
 	Email string `json:"email" db:"email"`
 	Role string `json:"role" db:"role"`
 	Password []byte `json:"password" db:"password"`
 }
 
-func (u *User) SetID(id int) {
+func (u *User) SetID(id uint) {
 	u.ID = id
 }
 
