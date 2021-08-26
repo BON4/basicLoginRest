@@ -14,7 +14,7 @@ type authRedisRepo struct {
 	redisClient *redis.Client
 }
 
-func (r *authRedisRepo) GetUserByID(ctx context.Context, key string) (*models.User, error) {
+func (r *authRedisRepo) GetUserByKey(ctx context.Context, key string) (*models.User, error) {
 	binaryData, err := r.redisClient.Get(ctx, key).Bytes()
 	if err != nil {
 		return nil, errors.Wrap(err, "authRedisRepo.GetUserByID.GetBytes")

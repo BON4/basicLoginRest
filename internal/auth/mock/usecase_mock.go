@@ -12,31 +12,31 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockUseCase is a mock of UseCase interface.
-type MockUseCase struct {
+// MockUCAuth is a mock of UCAuth interface.
+type MockUCAuth struct {
 	ctrl     *gomock.Controller
-	recorder *MockUseCaseMockRecorder
+	recorder *MockUCAuthMockRecorder
 }
 
-// MockUseCaseMockRecorder is the mock recorder for MockUseCase.
-type MockUseCaseMockRecorder struct {
-	mock *MockUseCase
+// MockUCAuthMockRecorder is the mock recorder for MockUCAuth.
+type MockUCAuthMockRecorder struct {
+	mock *MockUCAuth
 }
 
-// NewMockUseCase creates a new mock instance.
-func NewMockUseCase(ctrl *gomock.Controller) *MockUseCase {
-	mock := &MockUseCase{ctrl: ctrl}
-	mock.recorder = &MockUseCaseMockRecorder{mock}
+// NewMockUCAuth creates a new mock instance.
+func NewMockUCAuth(ctrl *gomock.Controller) *MockUCAuth {
+	mock := &MockUCAuth{ctrl: ctrl}
+	mock.recorder = &MockUCAuthMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUseCase) EXPECT() *MockUseCaseMockRecorder {
+func (m *MockUCAuth) EXPECT() *MockUCAuthMockRecorder {
 	return m.recorder
 }
 
 // Delete mocks base method.
-func (m *MockUseCase) Delete(ctx context.Context, userID uint) error {
+func (m *MockUCAuth) Delete(ctx context.Context, userID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, userID)
 	ret0, _ := ret[0].(error)
@@ -44,13 +44,13 @@ func (m *MockUseCase) Delete(ctx context.Context, userID uint) error {
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockUseCaseMockRecorder) Delete(ctx, userID interface{}) *gomock.Call {
+func (mr *MockUCAuthMockRecorder) Delete(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUseCase)(nil).Delete), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUCAuth)(nil).Delete), ctx, userID)
 }
 
 // GetByID mocks base method.
-func (m *MockUseCase) GetByID(ctx context.Context, userID uint) (*models.User, error) {
+func (m *MockUCAuth) GetByID(ctx context.Context, userID uint) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, userID)
 	ret0, _ := ret[0].(*models.User)
@@ -59,28 +59,28 @@ func (m *MockUseCase) GetByID(ctx context.Context, userID uint) (*models.User, e
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockUseCaseMockRecorder) GetByID(ctx, userID interface{}) *gomock.Call {
+func (mr *MockUCAuthMockRecorder) GetByID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUseCase)(nil).GetByID), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUCAuth)(nil).GetByID), ctx, userID)
 }
 
 // LoginWithEmail mocks base method.
-func (m *MockUseCase) LoginWithEmail(ctx context.Context, username string, password []byte) (*models.UserWithToken, error) {
+func (m *MockUCAuth) LoginWithEmail(ctx context.Context, email string, password []byte) (*models.UserWithToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoginWithEmail", ctx, username, password)
+	ret := m.ctrl.Call(m, "LoginWithEmail", ctx, email, password)
 	ret0, _ := ret[0].(*models.UserWithToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoginWithEmail indicates an expected call of LoginWithEmail.
-func (mr *MockUseCaseMockRecorder) LoginWithEmail(ctx, username, password interface{}) *gomock.Call {
+func (mr *MockUCAuthMockRecorder) LoginWithEmail(ctx, email, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginWithEmail", reflect.TypeOf((*MockUseCase)(nil).LoginWithEmail), ctx, username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginWithEmail", reflect.TypeOf((*MockUCAuth)(nil).LoginWithEmail), ctx, email, password)
 }
 
 // LoginWithUsername mocks base method.
-func (m *MockUseCase) LoginWithUsername(ctx context.Context, username string, password []byte) (*models.UserWithToken, error) {
+func (m *MockUCAuth) LoginWithUsername(ctx context.Context, username string, password []byte) (*models.UserWithToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoginWithUsername", ctx, username, password)
 	ret0, _ := ret[0].(*models.UserWithToken)
@@ -89,13 +89,13 @@ func (m *MockUseCase) LoginWithUsername(ctx context.Context, username string, pa
 }
 
 // LoginWithUsername indicates an expected call of LoginWithUsername.
-func (mr *MockUseCaseMockRecorder) LoginWithUsername(ctx, username, password interface{}) *gomock.Call {
+func (mr *MockUCAuthMockRecorder) LoginWithUsername(ctx, username, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginWithUsername", reflect.TypeOf((*MockUseCase)(nil).LoginWithUsername), ctx, username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginWithUsername", reflect.TypeOf((*MockUCAuth)(nil).LoginWithUsername), ctx, username, password)
 }
 
 // Register mocks base method.
-func (m *MockUseCase) Register(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
+func (m *MockUCAuth) Register(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Register", ctx, user)
 	ret0, _ := ret[0].(*models.UserWithToken)
@@ -104,13 +104,13 @@ func (m *MockUseCase) Register(ctx context.Context, user *models.User) (*models.
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockUseCaseMockRecorder) Register(ctx, user interface{}) *gomock.Call {
+func (mr *MockUCAuthMockRecorder) Register(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUseCase)(nil).Register), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUCAuth)(nil).Register), ctx, user)
 }
 
 // Update mocks base method.
-func (m *MockUseCase) Update(ctx context.Context, user *models.User) (*models.User, error) {
+func (m *MockUCAuth) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, user)
 	ret0, _ := ret[0].(*models.User)
@@ -119,7 +119,7 @@ func (m *MockUseCase) Update(ctx context.Context, user *models.User) (*models.Us
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockUseCaseMockRecorder) Update(ctx, user interface{}) *gomock.Call {
+func (mr *MockUCAuthMockRecorder) Update(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUseCase)(nil).Update), ctx, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUCAuth)(nil).Update), ctx, user)
 }

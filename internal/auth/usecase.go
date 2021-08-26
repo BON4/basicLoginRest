@@ -5,7 +5,7 @@ import (
 	"context"
 )
 
-type UseCase interface {
+type UCAuth interface {
 	LoginWithUsername(ctx context.Context, username string, password []byte) (*models.UserWithToken, error)
 	LoginWithEmail(ctx context.Context, email string, password []byte) (*models.UserWithToken, error)
 	Register(ctx context.Context, user *models.User) (*models.UserWithToken, error)

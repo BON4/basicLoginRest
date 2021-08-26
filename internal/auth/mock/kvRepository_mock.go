@@ -49,19 +49,19 @@ func (mr *MockKVRepositoryMockRecorder) DeleteUser(ctx, key interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockKVRepository)(nil).DeleteUser), ctx, key)
 }
 
-// GetUserByID mocks base method.
-func (m *MockKVRepository) GetUserByID(ctx context.Context, key string) (*models.User, error) {
+// GetUserByKey mocks base method.
+func (m *MockKVRepository) GetUserByKey(ctx context.Context, key string) (*models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByID", ctx, key)
+	ret := m.ctrl.Call(m, "GetUserByKey", ctx, key)
 	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserByID indicates an expected call of GetUserByID.
-func (mr *MockKVRepositoryMockRecorder) GetUserByID(ctx, key interface{}) *gomock.Call {
+// GetUserByKey indicates an expected call of GetUserByKey.
+func (mr *MockKVRepositoryMockRecorder) GetUserByKey(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockKVRepository)(nil).GetUserByID), ctx, key)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByKey", reflect.TypeOf((*MockKVRepository)(nil).GetUserByKey), ctx, key)
 }
 
 // SetUser mocks base method.

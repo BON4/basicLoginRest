@@ -6,6 +6,7 @@ type Config struct {
 	Server   ServerConfig `yaml:"server"`
 	Postgres PostgresConfig `yaml:"postgres"`
 	Logger   Logger `yaml:"logger"`
+	Redis    Redis `yaml:"redis"`
 }
 
 type PostgresConfig struct {
@@ -36,5 +37,12 @@ type Logger struct {
 
 type Cookie struct {
 	MaxAgeSeconds int `yaml:"max_age_seconds"`
+}
 
+type Redis struct {
+	Addr string `yaml:"addr"`
+	Database int `yaml:"db"`
+	Password string `yaml:"password"`
+	MaxRetries int `yaml:"max_retries"`
+	MaxRetryBackoff time.Duration `yaml:"max_retry_backoff"`
 }

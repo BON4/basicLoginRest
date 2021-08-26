@@ -20,3 +20,10 @@ logger:
   disable_stacktrace: false
   encoding: json
   level: info
+
+redis:
+  addr: 127.0.0.1:6379
+  db: 1
+  password: "123"
+  max-retries: 3
+  max-retry-backoff: 5s
