@@ -1,4 +1,4 @@
-package repository
+package manager
 
 import (
 	"basicLoginRest/internal/session"
@@ -32,12 +32,12 @@ type options struct {
 	sessionID  IDHandlerFunc
 	cookieName string
 	expired    time.Duration
-	store      session.UCSession
+	store      session.Repository
 }
 
 type Option func(*options)
 
-func SetStore(store session.UCSession) Option {
+func SetStore(store session.Repository) Option {
 	return func(o *options) {
 		o.store = store
 	}
@@ -55,26 +55,26 @@ func SetCookieName(name string) Option {
 	}
 }
 
-type Manager struct {
+type manager struct {
 	opts *options
 }
 
-func NewManager(opt ...Option) *Manager {
+func newManager(opt ...Option) session.Manager {
 	opts := defaultOption
 
 	for _, o := range opt {
 		o(&opts)
 	}
-	return &Manager{
+	return &manager{
 		opts: &opts,
 	}
 }
 
-func (m *Manager) GetCookieName() string {
+func (m *manager) GetCookieName() string {
 	return m.opts.cookieName
 }
 
-func (m *Manager) Start(ctx context.Context, sid string) (session.Session, error) {
+func (m *manager) Start(ctx context.Context, sid string) (session.Session, error) {
 	//TODO Maybe create function validSid
 	if sid != "" {
 		ok, err := m.opts.store.Check(ctx, sid)
@@ -92,7 +92,7 @@ func (m *Manager) Start(ctx context.Context, sid string) (session.Session, error
 	return m.opts.store.Create(ctx, newSid, m.opts.expired)
 }
 
-func (m *Manager) Refresh(ctx context.Context, oldSid string) (session.Session, error) {
+func (m *manager) Refresh(ctx context.Context, oldSid string) (session.Session, error) {
 	if oldSid == "" {
 		oldSid = m.opts.sessionID(ctx)
 	}

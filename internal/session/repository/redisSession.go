@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	jsonMarshal                     = json.Marshal
-	jsonUnmarshal                   = json.Unmarshal
-	_             session.UCSession = &cacheManager{}
-	_             session.Session   = &cache{}
+	jsonMarshal                      = json.Marshal
+	jsonUnmarshal                    = json.Unmarshal
+	_             session.Repository = &cacheManager{}
+	_             session.Session    = &cache{}
 )
 
-func NewRedisCache(opts *config.Config, prefix ...string) session.UCSession {
+func NewRedisCache(opts *config.Config, prefix ...string) session.Repository {
 	if opts == nil {
 		panic("redis options not specified")
 	}
@@ -34,7 +34,7 @@ func NewRedisCache(opts *config.Config, prefix ...string) session.UCSession {
 		prefix...)
 }
 
-func NewRedisCacheCli(cli *redis.Client, prefix ...string) session.UCSession {
+func NewRedisCacheCli(cli *redis.Client, prefix ...string) session.Repository {
 	cache := &cacheManager{
 		cli: cli,
 	}

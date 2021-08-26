@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type UCSession interface {
+type Repository interface {
 	//Check if cache exists
 	Check(ctx context.Context, sid string) (bool, error)
 

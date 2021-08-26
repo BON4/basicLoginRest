@@ -6,14 +6,13 @@ import (
 	"context"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/require"
-	"os"
 	"testing"
 	"time"
 )
 
-func getConnAndRepo() (*miniredis.Miniredis, session.UCSession, *config.Config) {
+func getConnAndRepo() (*miniredis.Miniredis, session.Repository, *config.Config) {
 	var (
-		repo session.UCSession
+		repo session.Repository
 		opts *config.Config
 	)
 
@@ -37,31 +36,45 @@ func getConnAndRepo() (*miniredis.Miniredis, session.UCSession, *config.Config) 
 	return mr, repo, opts
 }
 
-func TestMain(m *testing.M) {
-	code := m.Run()
-
-	os.Exit(code)
-}
-
-func TestCache_Save(t *testing.T) {
+func TestCacheManager_Check(t *testing.T) {
 	_, usecase, _ := getConnAndRepo()
-	manager := NewManager(SetCookieName("go_session"), SetStore(usecase))
-	s, err := manager.Start(context.Background(), "")
+	s, err := usecase.Create(context.Background(), "", time.Second)
 	require.NoError(t, err)
-
-	key, val := "1", "2"
-
-	s.Set(key, val)
+	require.NotNil(t, s)
 
 	err = s.Save()
 	require.NoError(t, err)
 
-	savedSid := s.SessionID()
-
-	s, err = manager.Start(context.Background(), savedSid)
+	ok, err := usecase.Check(context.Background(), s.SessionID())
 	require.NoError(t, err)
-
-	getVal, ok := s.Get(key)
 	require.True(t, ok)
-	require.Equal(t, getVal, val)
+}
+
+func TestCacheManager_Create(t *testing.T) {
+	_, usecase, _ := getConnAndRepo()
+	s, err := usecase.Create(context.Background(), "", time.Second)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+}
+
+func TestCacheManager_Update(t *testing.T) {
+	_, usecase, _ := getConnAndRepo()
+	s, err := usecase.Create(context.Background(), "", time.Second)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	updatedS, err := usecase.Update(context.Background(), s.SessionID(), time.Second*5)
+	require.NoError(t, err)
+	require.NotNil(t, updatedS)
+}
+
+func TestCacheManager_Refresh(t *testing.T) {
+	_, usecase, _ := getConnAndRepo()
+	s, err := usecase.Create(context.Background(), "old", time.Second)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	newS, err := usecase.Refresh(context.Background(), s.SessionID(), "new", time.Second*2)
+	require.NoError(t, err)
+	require.NotNil(t, newS)
 }
