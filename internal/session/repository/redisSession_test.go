@@ -3,14 +3,15 @@ package repository
 import (
 	"basicLoginRest/config"
 	"basicLoginRest/internal/session"
-	"fmt"
+	"context"
 	"github.com/alicebob/miniredis/v2"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 	"time"
 )
 
-func getConnAndRepo(configPath string) (*miniredis.Miniredis, session.UCSession, *config.Config, error) {
+func getConnAndRepo() (*miniredis.Miniredis, session.UCSession, *config.Config) {
 	var (
 		repo session.UCSession
 		opts *config.Config
@@ -18,7 +19,7 @@ func getConnAndRepo(configPath string) (*miniredis.Miniredis, session.UCSession,
 
 	mr, err := miniredis.Run()
 	if err != nil {
-		return nil, nil, nil,fmt.Errorf("an error '%s' was not expected when opening a stub database connection", err)
+		panic("an error '%s' was not expected when opening a stub database connection")
 	}
 
 	opts = &config.Config{Redis: config.Redis{
@@ -33,7 +34,7 @@ func getConnAndRepo(configPath string) (*miniredis.Miniredis, session.UCSession,
 
 	repo = NewRedisCache(opts)
 
-	return mr, repo, opts, nil
+	return mr, repo, opts
 }
 
 func TestMain(m *testing.M) {
@@ -42,6 +43,25 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestRedisConnect(t *testing.T) {
+func TestCache_Save(t *testing.T) {
+	_, usecase, _ := getConnAndRepo()
+	manager := NewManager(SetCookieName("go_session"), SetStore(usecase))
+	s, err := manager.Start(context.Background(), "")
+	require.NoError(t, err)
 
+	key, val := "1", "2"
+
+	s.Set(key, val)
+
+	err = s.Save()
+	require.NoError(t, err)
+
+	savedSid := s.SessionID()
+
+	s, err = manager.Start(context.Background(), savedSid)
+	require.NoError(t, err)
+
+	getVal, ok := s.Get(key)
+	require.True(t, ok)
+	require.Equal(t, getVal, val)
 }
