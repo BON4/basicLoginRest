@@ -7,6 +7,7 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Logger   Logger `yaml:"logger"`
 	Redis    Redis `yaml:"redis"`
+	Session Session `yaml:"session"`
 }
 
 type PostgresConfig struct {
@@ -45,4 +46,8 @@ type Redis struct {
 	Password string `yaml:"password"`
 	MaxRetries int `yaml:"max_retries"`
 	MaxRetryBackoff time.Duration `yaml:"max_retry_backoff"`
+}
+
+type Session struct {
+	Expire int `yaml:"expire"`
 }

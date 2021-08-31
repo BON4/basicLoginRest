@@ -14,29 +14,13 @@ var (
 	jsonMarshal                      = json.Marshal
 	jsonUnmarshal                    = json.Unmarshal
 	_             session.Repository = &cacheManager{}
-	_             session.Session    = &cache{}
+	_             session.Store      = &store{}
 )
 
-func NewRedisCache(opts *config.Config, prefix ...string) session.Repository {
-	if opts == nil {
-		panic("redis options not specified")
-	}
-
-	redisOpts := redis.Options{}
-	redisOpts.Addr = opts.Redis.Addr
-	redisOpts.DB = opts.Redis.Database
-	redisOpts.Password = opts.Redis.Password
-	redisOpts.MaxRetries = opts.Redis.MaxRetries
-	redisOpts.MaxRetryBackoff = opts.Redis.MaxRetryBackoff
-
-	return NewRedisCacheCli(
-		redis.NewClient(&redisOpts),
-		prefix...)
-}
-
-func NewRedisCacheCli(cli *redis.Client, prefix ...string) session.Repository {
+func NewCacheManager(cli *redis.Client, cfg *config.Config, prefix ...string) session.Repository {
 	cache := &cacheManager{
 		cli: cli,
+		cfg: cfg,
 	}
 
 	if len(prefix) > 0 {
@@ -48,6 +32,7 @@ func NewRedisCacheCli(cli *redis.Client, prefix ...string) session.Repository {
 
 type cacheManager struct {
 	cli *redis.Client
+	cfg *config.Config
 	prefix string
 }
 
@@ -82,16 +67,25 @@ func (cm *cacheManager) Check(ctx context.Context, sid string) (bool, error) {
 	return res == 1, err
 }
 
-func (cm *cacheManager) Create(ctx context.Context, sid string, expired time.Duration) (session.Session, error) {
-	return newCache(ctx, cm, sid, expired, nil), nil
+func (cm *cacheManager) Create(ctx context.Context, sid string, expired time.Duration) (session.Store, error) {
+	return NewStore(ctx, cm, sid, expired, nil), nil
 }
 
-func (cm *cacheManager) Update(ctx context.Context, sid string, expired time.Duration) (session.Session, error) {
+func (cm *cacheManager) Delete(ctx context.Context, sid string) error {
+	if ok, err := cm.Check(ctx, sid); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
+	return cm.cli.Del(ctx, cm.getKey(sid)).Err()
+}
+
+func (cm *cacheManager) Update(ctx context.Context, sid string, expired time.Duration) (session.Store, error) {
 	value, err := cm.getValue(ctx, sid)
 	if err != nil {
 		return nil, err
 	} else if len(value) == 0 {
-		return newCache(ctx, cm, sid, expired,nil), nil
+		return NewStore(ctx, cm, sid, expired,nil), nil
 	}
 
 	if err := cm.cli.Expire(ctx, sid, expired).Err(); err != nil {
@@ -103,15 +97,15 @@ func (cm *cacheManager) Update(ctx context.Context, sid string, expired time.Dur
 		return nil, err
 	}
 
-	return newCache(ctx, cm, sid, expired, values), nil
+	return NewStore(ctx, cm, sid, expired, values), nil
 }
 
-func (cm *cacheManager) Refresh(ctx context.Context, oldSid, newSid string, expired time.Duration) (session.Session, error) {
+func (cm *cacheManager) Refresh(ctx context.Context, oldSid, newSid string, expired time.Duration) (session.Store, error) {
 	value, err := cm.getValue(ctx, oldSid)
 	if err != nil {
 		return nil, err
 	} else if len(value) == 0 {
-		return newCache(ctx, cm, newSid, expired,nil), nil
+		return NewStore(ctx, cm, newSid, expired,nil), nil
 	}
 
 	pipe := cm.cli.TxPipeline()
@@ -128,7 +122,7 @@ func (cm *cacheManager) Refresh(ctx context.Context, oldSid, newSid string, expi
 		return nil, err
 	}
 
-	return newCache(ctx, cm, newSid, expired, values), nil
+	return NewStore(ctx, cm, newSid, expired, values), nil
 }
 
 func (cm *cacheManager) Connect() (bool, error) {
@@ -141,12 +135,12 @@ func (cm *cacheManager) Close() error {
 }
 
 
-func newCache(ctx context.Context, cm *cacheManager, sid string, expired time.Duration, values map[string]interface{}) *cache {
+func NewStore(ctx context.Context, cm *cacheManager, sid string, expired time.Duration, values map[string]interface{}) session.Store {
 	if values == nil {
 		values = make(map[string]interface{})
 	}
 
-	return &cache{
+	return &store{
 		ctx:     ctx,
 		sid:     sid,
 		cm:      cm,
@@ -155,7 +149,7 @@ func newCache(ctx context.Context, cm *cacheManager, sid string, expired time.Du
 	}
 }
 
-type cache struct {
+type store struct {
 	sync.RWMutex
 	ctx context.Context
 	sid string
@@ -164,28 +158,40 @@ type cache struct {
 	values  map[string]interface{}
 }
 
-func (c *cache) Context() context.Context {
+func (c *store) Context() context.Context {
 	return c.ctx
 }
 
-func (c *cache) SessionID() string {
+func (c *store) SessionID() string {
 	return c.sid
 }
 
-func (c *cache) Set(key string, value interface{}) {
+func (c *store) Set(key string, value interface{}) {
 	c.Lock()
 	c.values[key] = value
 	c.Unlock()
 }
 
-func (c *cache) Get(key string) (interface{}, bool) {
+func (c *store) Get(key string) (interface{}, bool) {
 	c.RLock()
 	val, ok := c.values[key]
 	c.RUnlock()
 	return val, ok
 }
 
-func (c *cache) Save() error {
+func (c *store) Delete(key string) interface{} {
+	c.RLock()
+	v, ok := c.values[key]
+	c.RUnlock()
+	if ok {
+		c.Lock()
+		delete(c.values, key)
+		c.Unlock()
+	}
+	return v
+}
+
+func (c *store) Save() error {
 	var buf []byte
 	var err error
 
@@ -199,11 +205,10 @@ func (c *cache) Save() error {
 	}
 	c.RUnlock()
 
-	//print(c.sid + " " + string(buf) + "\n")
 	return c.cm.cli.Set(c.ctx, c.cm.getKey(c.sid), string(buf), c.expired).Err()
 }
 
-func (c *cache) Flush() error {
+func (c *store) Flush() error {
 	c.Lock()
 	c.values = make(map[string]interface{})
 	c.Unlock()

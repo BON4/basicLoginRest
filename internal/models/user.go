@@ -79,7 +79,7 @@ func (ufc UserFactory) validateEmail(email string) error {
 	return nil
 }
 
-func (ufc UserFactory) parsePassword(password string) []byte {
+func (ufc UserFactory) ParsePassword(password string) []byte {
 	if ufc.fc.ParsePassword == nil {
 		return []byte(password)
 	}
@@ -147,38 +147,44 @@ func (p RoleDoesNotExistError) Error() string {
 //	}, nil
 //}
 
-func (ufc UserFactory) NewUser(username string, email string, role Role ,password string) (User, error) {
+func (ufc UserFactory) validate(username string, email string, role Role ,password string) error {
 	if err := ufc.validateEmail(email); err != nil {
-		return User{}, err
+		return err
 	}
 
 	if len(username) < ufc.fc.MinUsernameLen {
-		return User{}, UsernameTooShortError{
+		return UsernameTooShortError{
 			MinUsernameLen:   ufc.fc.MinUsernameLen,
 			ProvidedUsernameLen: len(username),
 		}
 	}
 
 	if len(password) < ufc.fc.MinPasswordLen {
-		return User{}, PasswordTooShortError{
+		return PasswordTooShortError{
 			MinPasswordLenLen:   ufc.fc.MinPasswordLen,
 			ProvidedPasswordLen: len(password),
 		}
 	}
 
-
 	if _, ok := CheckPermission(role.String()); !ok {
-		return User{},RoleDoesNotExistError{
+		return RoleDoesNotExistError{
 			ProvidedRole: role.String(),
 			ListOfRoles: GetRolesList(),
 		}
+	}
+	return nil
+}
+
+func (ufc UserFactory) NewUser(username string, email string, role Role ,password string) (User, error) {
+	if err := ufc.validate(username, email, role, password); err != nil {
+		return User{}, err
 	}
 
 	return User{
 		Username: username,
 		Email:    email,
 		Role: 	  role.String(),
-		Password: ufc.parsePassword(password),
+		Password: ufc.ParsePassword(password),
 	}, nil
 }
 

@@ -3,6 +3,7 @@ package repository
 import (
 	"basicLoginRest/config"
 	"basicLoginRest/internal/session"
+	"basicLoginRest/pkg/db/redis"
 	"context"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ import (
 func getConnAndRepo() (*miniredis.Miniredis, session.Repository, *config.Config) {
 	var (
 		repo session.Repository
-		opts *config.Config
+		cfg *config.Config
 	)
 
 	mr, err := miniredis.Run()
@@ -21,7 +22,7 @@ func getConnAndRepo() (*miniredis.Miniredis, session.Repository, *config.Config)
 		panic("an error '%s' was not expected when opening a stub database connection")
 	}
 
-	opts = &config.Config{Redis: config.Redis{
+	cfg = &config.Config{Redis: config.Redis{
 		Addr:            mr.Addr(),
 		Database:        1,
 		Password:        "123",
@@ -29,11 +30,12 @@ func getConnAndRepo() (*miniredis.Miniredis, session.Repository, *config.Config)
 		MaxRetryBackoff: time.Second*5,
 	}}
 
-	mr.RequireAuth(opts.Redis.Password)
+	mr.RequireAuth(cfg.Redis.Password)
 
-	repo = NewRedisCache(opts)
+	cli := redis.NewRedisCache(cfg)
+	repo = NewCacheManager(cli, cfg, "test")
 
-	return mr, repo, opts
+	return mr, repo, cfg
 }
 
 func TestCacheManager_Check(t *testing.T) {

@@ -1,3 +1,4 @@
+//TODO change options type of initializeing to simple constructor with confg.Config
 package manager
 
 import (
@@ -74,7 +75,7 @@ func (m *manager) GetCookieName() string {
 	return m.opts.cookieName
 }
 
-func (m *manager) Start(ctx context.Context, sid string) (session.Session, error) {
+func (m *manager) Start(ctx context.Context, sid string) (session.Store, error) {
 	//TODO Maybe create function validSid
 	if sid != "" {
 		ok, err := m.opts.store.Check(ctx, sid)
@@ -92,7 +93,7 @@ func (m *manager) Start(ctx context.Context, sid string) (session.Session, error
 	return m.opts.store.Create(ctx, newSid, m.opts.expired)
 }
 
-func (m *manager) Refresh(ctx context.Context, oldSid string) (session.Session, error) {
+func (m *manager) Refresh(ctx context.Context, oldSid string) (session.Store, error) {
 	if oldSid == "" {
 		oldSid = m.opts.sessionID(ctx)
 	}
