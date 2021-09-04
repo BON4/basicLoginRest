@@ -47,7 +47,7 @@ func (a *authHandlers) Register() echo.HandlerFunc {
 			return c.JSON(httpErrors.ErrorResponse(err))
 		}
 
-		store.Set(registerUser.Token, registerUser.User)
+		store.Set("user", registerUser.User)
 		if err := store.Save(); err != nil {
 			return c.JSON(httpErrors.ErrorResponse(err))
 		}
@@ -112,7 +112,7 @@ func (a *authHandlers) Login() echo.HandlerFunc {
 			return c.JSON(httpErrors.ErrorResponse(err))
 		}
 
-		store.Set(createdUser.Token, createdUser.User)
+		store.Set("user", createdUser.User)
 		if err := store.Save(); err != nil {
 			return c.JSON(httpErrors.ErrorResponse(err))
 		}
