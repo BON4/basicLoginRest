@@ -188,6 +188,63 @@ func (ufc UserFactory) NewUser(username string, email string, role Role ,passwor
 	}, nil
 }
 
+func (ufc UserFactory) NewUserWithEmail(email string, role Role ,password string) (User, error) {
+	if err := ufc.validateEmail(email); err != nil {
+		return User{}, err
+	}
+
+	if len(password) < ufc.fc.MinPasswordLen {
+		return User{}, PasswordTooShortError{
+			MinPasswordLenLen:   ufc.fc.MinPasswordLen,
+			ProvidedPasswordLen: len(password),
+		}
+	}
+
+	if _, ok := CheckPermission(role.String()); !ok {
+		return User{}, RoleDoesNotExistError{
+			ProvidedRole: role.String(),
+			ListOfRoles: GetRolesList(),
+		}
+	}
+
+	return User{
+		Username: "",
+		Email:    email,
+		Role: 	  role.String(),
+		Password: ufc.ParsePassword(password),
+	}, nil
+}
+
+func (ufc UserFactory) NewUserWithUsername(username string, role Role ,password string) (User, error) {
+	if len(username) < ufc.fc.MinUsernameLen {
+		return User{}, UsernameTooShortError{
+			MinUsernameLen:   ufc.fc.MinUsernameLen,
+			ProvidedUsernameLen: len(username),
+		}
+	}
+
+	if len(password) < ufc.fc.MinPasswordLen {
+		return User{}, PasswordTooShortError{
+			MinPasswordLenLen:   ufc.fc.MinPasswordLen,
+			ProvidedPasswordLen: len(password),
+		}
+	}
+
+	if _, ok := CheckPermission(role.String()); !ok {
+		return User{}, RoleDoesNotExistError{
+			ProvidedRole: role.String(),
+			ListOfRoles: GetRolesList(),
+		}
+	}
+
+	return User{
+		Username: username,
+		Email:    "",
+		Role: 	  role.String(),
+		Password: ufc.ParsePassword(password),
+	}, nil
+}
+
 type UserWithToken struct {
 	User *User `json:"user"`
 	Token string `json:"token"`

@@ -35,6 +35,20 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
+// Destroy mocks base method.
+func (m *MockManager) Destroy(ctx context.Context, sid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Destroy", ctx, sid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Destroy indicates an expected call of Destroy.
+func (mr *MockManagerMockRecorder) Destroy(ctx, sid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Destroy", reflect.TypeOf((*MockManager)(nil).Destroy), ctx, sid)
+}
+
 // Refresh mocks base method.
 func (m *MockManager) Refresh(ctx context.Context, oldSid string) (session.Store, error) {
 	m.ctrl.T.Helper()

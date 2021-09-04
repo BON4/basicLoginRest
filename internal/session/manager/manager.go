@@ -100,3 +100,10 @@ func (m *manager) Refresh(ctx context.Context, oldSid string) (session.Store, er
 	newSid := m.opts.sessionID(ctx)
 	return m.opts.store.Refresh(ctx, oldSid, newSid, m.opts.expired)
 }
+
+func (m *manager) Destroy(ctx context.Context, sid string) error {
+	if sid == "" {
+		return nil
+	}
+	return m.opts.store.Delete(ctx, sid)
+}

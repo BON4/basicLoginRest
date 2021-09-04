@@ -8,6 +8,7 @@ type Config struct {
 	Logger   Logger `yaml:"logger"`
 	Redis    Redis `yaml:"redis"`
 	Session Session `yaml:"session"`
+	Cookie Cookie `yaml:"cookie"`
 }
 
 type PostgresConfig struct {
@@ -38,6 +39,8 @@ type Logger struct {
 
 type Cookie struct {
 	MaxAgeSeconds int `yaml:"max_age_seconds"`
+	Secure bool `yaml:"secure"`
+	HTTPOnly bool `yaml:"http_only"`
 }
 
 type Redis struct {
@@ -50,4 +53,5 @@ type Redis struct {
 
 type Session struct {
 	Expire int `yaml:"expire"`
+	Name string `yaml:"name"`
 }
