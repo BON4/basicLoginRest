@@ -2,8 +2,7 @@ package utils
 
 import (
 	"basicLoginRest/internal/models"
-	"context"
-	"github.com/pkg/errors"
+	"basicLoginRest/pkg/httpErrors"
 )
 
 func stringInSlice(a models.Permission, list []models.Permission) bool {
@@ -15,19 +14,14 @@ func stringInSlice(a models.Permission, list []models.Permission) bool {
 	return false
 }
 
-func ValidatePermission(ctx context.Context, perm models.Permission) error {
-	u, err := GetUserFromCtx(ctx)
-	if err != nil {
-		return err
-	}
-
-	if allowedPrm, ok := models.CheckPermission(u.Role); ok {
+func ValidatePermission(role string, perm models.Permission) httpErrors.RestErr {
+	if allowedPrm, ok := models.CheckPermission(role); ok {
 		if !stringInSlice(perm,allowedPrm) {
 			//TOLOG
-			return errors.New("Method not allowed for this role")
+			return httpErrors.NewForbiddenError("this user has no permission to: " + perm)
 		}
 	} else {
-		return errors.New("Role does not exists")
+		return httpErrors.NewBadRequestError("Role does not exists")
 	}
 
 	return nil

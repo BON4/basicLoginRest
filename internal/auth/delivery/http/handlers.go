@@ -11,6 +11,7 @@ import (
 	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
 )
 
 type authHandlers struct {
@@ -159,7 +160,18 @@ func (a *authHandlers) Delete() echo.HandlerFunc {
 
 func (a *authHandlers) GetByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSON(httpErrors.ErrorResponse(errors.New("not implemented")))
+
+		uid, err := strconv.ParseUint(c.Param("user_id"), 10, 32)
+		if err != nil {
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		user, err := a.authUC.GetByID(c.Request().Context(), uint(uid))
+		if err != nil {
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		return c.JSON(http.StatusOK, user)
 	}
 }
 

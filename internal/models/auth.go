@@ -36,6 +36,8 @@ func CheckPermission(role string) ([]Permission, bool) {
 	return p, ok
 }
 
+
+
 func GetRolesList() []Role {
 	keys := make([]Role, len(roles))
 	for k := range roles {

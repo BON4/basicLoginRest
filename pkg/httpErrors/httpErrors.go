@@ -40,6 +40,8 @@ var (
 	InvalidJWTClaims      = errors.New("Invalid JWT claims")
 	NotAllowedImageHeader = errors.New("Not allowed image header")
 	NoCookie              = errors.New("not found cookie header")
+
+	NoSuchRole			  = errors.New("this role not exists")
 )
 
 // Rest error interface

@@ -45,3 +45,19 @@ func (mg *Manager) AuthSessionMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		return next(c)
 	}
 }
+
+func (mg *Manager) RoleBasedMiddleware(permissionNeeded models.Permission) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			userRole, ok := c.Get("role").(string)
+			if !ok {
+				return c.JSON(http.StatusUnauthorized, httpErrors.NewUnauthorizedError(httpErrors.NoSuchRole))
+			}
+
+			if err := utils.ValidatePermission(userRole, permissionNeeded); err != nil {
+				return c.JSON(err.Status(), err)
+			}
+			return next(c)
+		}
+	}
+}
