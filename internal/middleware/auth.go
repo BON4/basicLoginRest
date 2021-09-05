@@ -46,7 +46,7 @@ func (mg *Manager) AuthSessionMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
-func (mg *Manager) RoleBasedMiddleware(permissionNeeded models.Permission) echo.MiddlewareFunc {
+func (mg *Manager) PermissionBasedMiddleware(permissionNeeded models.Permission) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			userRole, ok := c.Get("role").(string)

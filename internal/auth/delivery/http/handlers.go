@@ -147,20 +147,50 @@ func (a *authHandlers) Logout() echo.HandlerFunc {
 }
 
 func (a *authHandlers) Update() echo.HandlerFunc {
+	type UserToUpdate struct {
+		Username string `json:"username" validate:"required"`
+		Email string `json:"email" validate:"required"`
+		Role string `json:"role" validate:"required"`
+		Password string `json:"password" validate:"required"`
+	}
+
 	return func(c echo.Context) error {
-		return c.JSON(httpErrors.ErrorResponse(errors.New("not implemented")))
+		user := &UserToUpdate{}
+		if err := utils.ReadRequest(c, user); err != nil {
+			//TODO LOG
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		valUser, err := a.userFc.NewUser(user.Username, user.Email, models.Role(user.Role), user.Password)
+		if err != nil {
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		updUser, err := a.authUC.Update(c.Request().Context(), &valUser)
+		if err != nil {
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		return c.JSON(http.StatusOK, updUser)
 	}
 }
 
 func (a *authHandlers) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSON(httpErrors.ErrorResponse(errors.New("not implemented")))
+		uid, err := strconv.ParseUint(c.Param("user_id"), 10, 32)
+		if err != nil {
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+
+		if err := a.authUC.Delete(c.Request().Context(), uint(uid)); err != nil {
+			return c.JSON(httpErrors.ErrorResponse(err))
+		}
+		return c.NoContent(http.StatusOK)
 	}
 }
 
 func (a *authHandlers) GetByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		uid, err := strconv.ParseUint(c.Param("user_id"), 10, 32)
 		if err != nil {
 			return c.JSON(httpErrors.ErrorResponse(err))
